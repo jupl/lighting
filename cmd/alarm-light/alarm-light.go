@@ -10,17 +10,14 @@ import (
 	"time"
 )
 
-var host = ""
-var user = ""
-var id = 0
-
+var lightConfig = light.Config{}
 var redColor, _ = colorful.Hex("#FF4136")
 var greenColor, _ = colorful.Hex("#2ECC40")
 
 func init() {
-	flag.StringVar(&host, "host", env.LightHost(), "Light API host")
-	flag.StringVar(&user, "user", env.LightUser(), "Light API user")
-	flag.IntVar(&id, "id", env.LightID(), "Light group ID")
+	flag.StringVar(&lightConfig.Host, "host", env.LightHost(), "Light API host")
+	flag.StringVar(&lightConfig.User, "user", env.LightUser(), "Light API user")
+	flag.IntVar(&lightConfig.ID, "id", env.LightID(), "Light group ID")
 	flag.Parse()
 	flag.Usage = usage
 }
@@ -33,18 +30,18 @@ func usage() {
 
 func main() {
 	// Verify that data is available
-	if user == "" || id == 0 {
+	if lightConfig.User == "" || lightConfig.ID == 0 {
 		usage()
 	}
 
 	// Note if hostname is not provided
-	if host == "" {
+	if lightConfig.Host == "" {
 		fmt.Println("No host provided, automatically selecting a host")
 	}
 
 	for {
 		// Attempt to update light, displaying any errors
-		if err := updateLight(host, user, id); err != nil {
+		if err := updateLight(lightConfig); err != nil {
 			fmt.Printf("[%s] %s\n", time.Now().Format(time.RFC822), err)
 		}
 
@@ -53,9 +50,9 @@ func main() {
 	}
 }
 
-func updateLight(host string, user string, id int) error {
+func updateLight(config light.Config) error {
 	// Find a light source
-	source, err := light.Find(host, user, id)
+	source, err := light.Find(config)
 	if err != nil {
 		return err
 	}

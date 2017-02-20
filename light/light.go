@@ -21,6 +21,13 @@ type states struct {
 
 var noSource = Source{}
 
+// Config used in lighting API
+type Config struct {
+	Host string
+	User string
+	ID   int
+}
+
 // Source defines a light source
 type Source struct {
 	groups *groups.Groups
@@ -28,17 +35,17 @@ type Source struct {
 }
 
 // Info returns a string containing host information.
-func Info(host string, user string) (string, error) {
+func Info(config Config) (string, error) {
 	var buffer bytes.Buffer
 
 	// Verify host
-	host, err := verifyHost(host)
+	host, err := verifyHost(config.Host)
 	if err != nil {
 		return "", err
 	}
 
 	// Iterate over groups
-	allGroups, err := groups.New(host, user).GetAllGroups()
+	allGroups, err := groups.New(host, config.User).GetAllGroups()
 	if err != nil {
 		return "", errors.New("Failed to parse groups")
 	}
@@ -57,15 +64,15 @@ func Info(host string, user string) (string, error) {
 // Find a light source with a given host and user. If host is blank, a host is
 // automatically selected. If a light source with an id is not found then
 // an error is returned.
-func Find(host string, user string, id int) (Source, error) {
+func Find(config Config) (Source, error) {
 	// Verify host
-	host, err := verifyHost(host)
+	host, err := verifyHost(config.Host)
 	if err != nil {
 		return noSource, err
 	}
 
 	// Attempt to get list of groups
-	groups := groups.New(host, user)
+	groups := groups.New(host, config.User)
 	allGroups, err := groups.GetAllGroups()
 	if err != nil {
 		return noSource, errors.New("Failed to parse groups")
@@ -75,7 +82,7 @@ func Find(host string, user string, id int) (Source, error) {
 	light := noSource
 	err = errors.New("Cannot find light group for given ID")
 	for _, group := range allGroups {
-		if group.ID != id {
+		if group.ID != config.ID {
 			continue
 		}
 		light = Source{groups: groups, group: group}

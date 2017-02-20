@@ -8,12 +8,11 @@ import (
 	"os"
 )
 
-var host = ""
-var user = ""
+var lightConfig = light.Config{}
 
 func init() {
-	flag.StringVar(&host, "host", env.LightHost(), "Light API host")
-	flag.StringVar(&user, "user", env.LightUser(), "Light API user")
+	flag.StringVar(&lightConfig.Host, "host", env.LightHost(), "Light API host")
+	flag.StringVar(&lightConfig.User, "user", env.LightUser(), "Light API user")
 	flag.Parse()
 	flag.Usage = usage
 }
@@ -26,17 +25,17 @@ func usage() {
 
 func main() {
 	// Verify that data is available
-	if user == "" {
+	if lightConfig.User == "" {
 		usage()
 	}
 
 	// Note if hostname is not provided
-	if host == "" {
+	if lightConfig.Host == "" {
 		fmt.Println("No host provided, automatically selecting a host")
 	}
 
 	// Get information and display
-	info, err := light.Info(host, user)
+	info, err := light.Info(lightConfig)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
