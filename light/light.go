@@ -8,6 +8,8 @@ import (
 	"github.com/heatxsink/go-hue/hue"
 	"github.com/heatxsink/go-hue/lights"
 	"github.com/heatxsink/go-hue/portal"
+	"github.com/lucasb-eyer/go-colorful"
+	"math"
 )
 
 type states struct {
@@ -23,29 +25,6 @@ var noSource = Source{}
 type Source struct {
 	groups *groups.Groups
 	group  groups.Group
-}
-
-// States of lights
-var States = states{
-	Off: lights.State{On: false},
-	Red: lights.State{
-		On:  true,
-		Hue: 65535,
-		Sat: 254,
-		Bri: 254,
-	},
-	Orange: lights.State{
-		On:  true,
-		Hue: 5460,
-		Sat: 254,
-		Bri: 254,
-	},
-	Green: lights.State{
-		On:  true,
-		Hue: 25500,
-		Sat: 254,
-		Bri: 254,
-	},
 }
 
 // Info returns a string containing host information.
@@ -106,12 +85,26 @@ func Find(host string, user string, id int) (Source, error) {
 	return light, err
 }
 
-// SetState for a light source to a given light state.
-func (light Source) SetState(state lights.State) ([]hue.ApiResponse, error) {
+// TurnOff a light source.
+func (light Source) TurnOff() ([]hue.ApiResponse, error) {
 	if light.groups == nil {
 		return nil, errors.New("Cannot set state on an invalid light")
 	}
-	return light.groups.SetGroupState(light.group.ID, state)
+	return light.groups.SetGroupState(light.group.ID, lights.State{On: false})
+}
+
+// TurnOn light source to a given state.
+func (light Source) TurnOn(color colorful.Color) ([]hue.ApiResponse, error) {
+	if light.groups == nil {
+		return nil, errors.New("Cannot set state on an invalid light")
+	}
+	hue, sat, bri := color.Hsv()
+	return light.groups.SetGroupState(light.group.ID, lights.State{
+		On:  true,
+		Hue: uint16(hue / 360 * math.MaxUint16),
+		Sat: uint8(math.Max(1, math.Min(math.MaxUint8-1, sat*math.MaxUint8))),
+		Bri: uint8(math.Max(1, math.Min(math.MaxUint8-1, bri*math.MaxUint8))),
+	})
 }
 
 func verifyHost(host string) (string, error) {

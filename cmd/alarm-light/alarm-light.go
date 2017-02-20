@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jupl/lighting/env"
 	"github.com/jupl/lighting/light"
+	"github.com/lucasb-eyer/go-colorful"
 	"os"
 	"time"
 )
@@ -12,6 +13,9 @@ import (
 var host = ""
 var user = ""
 var id = 0
+
+var redColor, _ = colorful.Hex("#FF4136")
+var greenColor, _ = colorful.Hex("#2ECC40")
 
 func init() {
 	flag.StringVar(&host, "host", env.LightHost(), "Light API host")
@@ -57,10 +61,10 @@ func updateLight(host string, user string, id int) error {
 	}
 
 	// Process light
-	state := light.States.Red
+	color := redColor
 	if time.Now().Minute()%2 == 0 {
-		state = light.States.Green
+		color = greenColor
 	}
-	_, err = source.SetState(state)
+	_, err = source.TurnOn(color)
 	return err
 }
