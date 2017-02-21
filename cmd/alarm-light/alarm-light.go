@@ -1,48 +1,42 @@
 package main
 
 import (
-	"flag"
-	"fmt"
+	"github.com/joho/godotenv"
 	"github.com/jupl/lighting/env"
 	"github.com/jupl/lighting/light"
+	"github.com/jupl/lighting/logger"
 	"github.com/lucasb-eyer/go-colorful"
-	"os"
 	"time"
 )
 
-var lightConfig = light.Config{}
 var redColor, _ = colorful.Hex("#FF4136")
 var greenColor, _ = colorful.Hex("#2ECC40")
 
-func init() {
-	flag.StringVar(&lightConfig.Host, "host", env.LightHost(), "Light API host")
-	flag.StringVar(&lightConfig.User, "user", env.LightUser(), "Light API user")
-	flag.IntVar(&lightConfig.ID, "id", env.LightID(), "Light group ID")
-	flag.Parse()
-	flag.Usage = usage
-}
-
-func usage() {
-	fmt.Fprintln(os.Stderr, "usage: alarm-light -host=[host] -user=[user] -id=[id]")
-	flag.PrintDefaults()
-	os.Exit(2)
-}
-
 func main() {
-	// Verify that data is available
-	if lightConfig.User == "" || lightConfig.ID == 0 {
-		usage()
+	log := logger.New()
+	errorLog := logger.NewError()
+	infoLog := logger.NewInfo()
+
+	// Attempt to read .env file
+	if godotenv.Load() != nil {
+		errorLog.Println("Cannot read .env file")
 	}
 
-	// Note if hostname is not provided
+	// Validate light config
+	lightConfig := env.LightConfig()
+	if lightConfig.User == "" {
+		errorLog.Fatalln("HUE_LIGHT_USER is not set")
+	} else if lightConfig.ID == 0 {
+		errorLog.Fatalln("HUE_LIGHT_ID is not set")
+	}
 	if lightConfig.Host == "" {
-		fmt.Println("No host provided, automatically selecting a host")
+		log.Println("HUE_LIGHT_HOST is not set, auto selecting host")
 	}
 
 	for {
 		// Attempt to update light, displaying any errors
 		if err := updateLight(lightConfig); err != nil {
-			fmt.Printf("[%s] %s\n", time.Now().Format(time.RFC822), err)
+			infoLog.Println(err)
 		}
 
 		// Wait for time to pass

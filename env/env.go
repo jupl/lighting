@@ -1,29 +1,17 @@
 package env
 
 import (
+	"github.com/jupl/lighting/light"
 	"os"
 	"strconv"
 )
 
-// LightID provides a light group ID from the environment variable
-// HUE_LIGHT_ID. If the environment variable cannot be parsed, the ID returned
-// is 0.
-func LightID() int {
-	lightID, err := strconv.Atoi(os.Getenv("HUE_LIGHT_ID"))
-	if err == nil {
-		lightID = 0
+// LightConfig reads light configuration.
+func LightConfig() light.Config {
+	id, _ := strconv.Atoi(os.Getenv("HUE_LIGHT_ID"))
+	return light.Config{
+		Host: os.Getenv("HUE_LIGHT_HOST"),
+		User: os.Getenv("HUE_LIGHT_USER"),
+		ID:   id,
 	}
-	return lightID
-}
-
-// LightUser gets the username for the light API from the environment
-// variable HUE_LIGHT_USER.
-func LightUser() string {
-	return os.Getenv("HUE_LIGHT_USER")
-}
-
-// LightHost gets the hostname for the light API from the environment
-// variable HUE_LIGHT_HOST.
-func LightHost() string {
-	return os.Getenv("HUE_LIGHT_HOST")
 }

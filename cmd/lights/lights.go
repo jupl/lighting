@@ -1,44 +1,34 @@
 package main
 
 import (
-	"flag"
-	"fmt"
+	"github.com/joho/godotenv"
 	"github.com/jupl/lighting/env"
 	"github.com/jupl/lighting/light"
-	"os"
+	"github.com/jupl/lighting/logger"
 )
 
-var lightConfig = light.Config{}
-
-func init() {
-	flag.StringVar(&lightConfig.Host, "host", env.LightHost(), "Light API host")
-	flag.StringVar(&lightConfig.User, "user", env.LightUser(), "Light API user")
-	flag.Parse()
-	flag.Usage = usage
-}
-
-func usage() {
-	fmt.Fprintln(os.Stderr, "usage: lights -host=[host] -user=[user]")
-	flag.PrintDefaults()
-	os.Exit(2)
-}
-
 func main() {
-	// Verify that data is available
-	if lightConfig.User == "" {
-		usage()
+	log := logger.New()
+	errorLog := logger.NewError()
+
+	// Attempt to read .env file
+	if godotenv.Load() != nil {
+		errorLog.Println("Cannot read .env file")
 	}
 
-	// Note if hostname is not provided
+	// Validate light config
+	lightConfig := env.LightConfig()
+	if lightConfig.User == "" {
+		errorLog.Fatalln("HUE_LIGHT_USER is not set")
+	}
 	if lightConfig.Host == "" {
-		fmt.Println("No host provided, automatically selecting a host")
+		log.Println("HUE_LIGHT_HOST is not set, auto selecting host")
 	}
 
 	// Get information and display
 	info, err := light.Info(lightConfig)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		errorLog.Fatalln(err)
 	}
-	fmt.Println(info)
+	log.Println(info)
 }
