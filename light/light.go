@@ -32,13 +32,13 @@ func Info(config Config) (string, error) {
 	var buffer bytes.Buffer
 
 	// Verify host
-	host, err := verifyHost(config.Host)
+	config, err := config.verify()
 	if err != nil {
 		return "", err
 	}
 
 	// Iterate over groups
-	allGroups, err := groups.New(host, config.User).GetAllGroups()
+	allGroups, err := groups.New(config.Host, config.User).GetAllGroups()
 	if err != nil {
 		return "", errors.New("Failed to parse groups")
 	}
@@ -59,13 +59,13 @@ func Info(config Config) (string, error) {
 // an error is returned.
 func Find(config Config) (Source, error) {
 	// Verify host
-	host, err := verifyHost(config.Host)
+	config, err := config.verify()
 	if err != nil {
 		return noSource, err
 	}
 
 	// Attempt to get list of groups
-	groups := groups.New(host, config.User)
+	groups := groups.New(config.Host, config.User)
 	allGroups, err := groups.GetAllGroups()
 	if err != nil {
 		return noSource, errors.New("Failed to parse groups")
@@ -107,15 +107,19 @@ func (light Source) TurnOn(color colorful.Color) ([]hue.ApiResponse, error) {
 	})
 }
 
-func verifyHost(host string) (string, error) {
-	if host == "" {
-		portals, err := portal.GetPortal()
-		if err != nil {
-			return "", errors.New("Failed to parse portal")
-		} else if len(portals) == 0 {
-			return "", errors.New("No bridges available")
-		}
-		host = portals[0].InternalIPAddress
+// verify checks config and attempts to fix any issues
+func (config Config) verify() (Config, error) {
+	if config.Host != "" {
+		return config, nil
 	}
-	return host, nil
+
+	// Use portal to find a host
+	portals, err := portal.GetPortal()
+	if err != nil {
+		return config, errors.New("Failed to parse portal")
+	} else if len(portals) == 0 {
+		return config, errors.New("No bridges available")
+	}
+	config.Host = portals[0].InternalIPAddress
+	return config, nil
 }

@@ -22,12 +22,10 @@ func main() {
 		errorLog.Println("Cannot read .env file")
 	}
 
-	// Validate light config
-	lightConfig := env.LightConfig()
-	if lightConfig.User == "" {
-		errorLog.Fatalln("HUE_LIGHT_USER is not set")
-	} else if lightConfig.ID == 0 {
-		errorLog.Fatalln("HUE_LIGHT_ID is not set")
+	// Read light config
+	lightConfig, err := env.LightConfig(true)
+	if err != nil {
+		errorLog.Fatalln(err)
 	}
 	if lightConfig.Host == "" {
 		log.Println("HUE_LIGHT_HOST is not set, auto selecting host")
