@@ -12,13 +12,6 @@ import (
 	"math"
 )
 
-type states struct {
-	Off    lights.State
-	Red    lights.State
-	Green  lights.State
-	Orange lights.State
-}
-
 var noSource = Source{}
 
 // Config used in lighting API
