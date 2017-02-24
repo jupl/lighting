@@ -2,9 +2,10 @@ package env
 
 import (
 	"errors"
-	"github.com/jupl/lighting/light"
 	"os"
 	"strconv"
+
+	"github.com/jupl/lighting/light"
 )
 
 // LightConfig reads light configuration. ID checking can be disabled using

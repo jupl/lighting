@@ -17,16 +17,16 @@ func main() {
 	}
 
 	// Read light config
-	lightConfig, err := env.LightConfig(false)
+	config, err := env.LightConfig(false)
 	if err != nil {
 		errorLog.Fatalln(err)
 	}
-	if lightConfig.Host == "" {
+	if config.Host == "" {
 		log.Println("HUE_LIGHT_HOST is not set, auto selecting host")
 	}
 
 	// Get information and display
-	info, err := light.Info(lightConfig)
+	info, err := light.Info(config)
 	if err != nil {
 		errorLog.Fatalln(err)
 	}

@@ -1,12 +1,13 @@
 package main
 
 import (
+	"time"
+
 	"github.com/joho/godotenv"
 	"github.com/jupl/lighting/env"
 	"github.com/jupl/lighting/light"
 	"github.com/jupl/lighting/logger"
 	"github.com/lucasb-eyer/go-colorful"
-	"time"
 )
 
 var redColor, _ = colorful.Hex("#FF4136")
@@ -23,21 +24,19 @@ func main() {
 	}
 
 	// Read light config
-	lightConfig, err := env.LightConfig(true)
+	config, err := env.LightConfig(true)
 	if err != nil {
 		errorLog.Fatalln(err)
 	}
-	if lightConfig.Host == "" {
+	if config.Host == "" {
 		log.Println("HUE_LIGHT_HOST is not set, auto selecting host")
 	}
 
+	// Attempt to update light per interval, displaying any errors
 	for {
-		// Attempt to update light, displaying any errors
-		if err := updateLight(lightConfig); err != nil {
+		if err := updateLight(config); err != nil {
 			infoLog.Println(err)
 		}
-
-		// Wait for time to pass
 		time.Sleep(time.Minute)
 	}
 }
