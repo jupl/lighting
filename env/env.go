@@ -9,7 +9,7 @@ import (
 )
 
 // LightConfig reads light configuration. ID checking can be disabled using
-// checkID. Any issues with parsing the config results in na error.
+// checkID. Any issues with parsing the config results in an error.
 func LightConfig(checkID bool) (light.Config, error) {
 	id, _ := strconv.Atoi(os.Getenv("HUE_LIGHT_ID"))
 	config := light.Config{
